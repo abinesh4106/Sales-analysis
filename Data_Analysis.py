@@ -1,49 +1,116 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-df = pd.read_csv('new_data.csv')
+# Data Loading
+df = pd.read_csv("sales_data.csv")
+
+print("\nDataset Preview")
 print(df.head())
-print("Rows and columns:", df.shape)
 
-print(df.describe())
-print(df.dtypes)
-print("Missing values:\n", df.isnull().sum())
-print("Unique products:", df['Product'].unique())
-print("Unique regions:", df['Region'].unique())
+print("\nDataset Info")
+print(df.info())
 
-df['Revenue'] = df['Revenue'].fillna(df['Units Sold'] * df['Unit Price'])
-df['Revenue'].fillna(df['Revenue'].mean(), inplace=True)
-df['Date'] = pd.to_datetime(df['Date'])
-df['Month'] = df['Date'].dt.to_period('M')
-df.drop_duplicates(inplace=True)
+print("\nMissing Values")
+print(df.isnull().sum())
 
-revenue_by_product = df.groupby('Product')['Revenue'].sum().sort_values(ascending=False)
-print(revenue_by_product)
-monthly_revenue = df.groupby('Month')['Revenue'].sum()
-print(monthly_revenue)
-regional_sales = df.groupby('Region')['Revenue'].sum()
-print(regional_sales)
+# Feature Engineering
+df["Revenue"] = df["Units_Sold"] * df["Unit_Price"]
 
-revenue_by_product.plot(kind='bar', title='Total Revenue by Product', ylabel='Revenue', xlabel='Product')
-plt.xticks(rotation=45)
-plt.tight_layout()
+print("\nRevenue Added")
+print(df.head())
+
+# Statistical Analysis
+revenue_array = np.array(df["Revenue"])
+
+print("\nNumPy Statistics")
+print("Total Revenue:", np.sum(revenue_array))
+print("Average Revenue:", np.mean(revenue_array))
+print("Maximum Revenue:", np.max(revenue_array))
+print("Minimum Revenue:", np.min(revenue_array))
+print("Standard Deviation:", np.std(revenue_array))
+
+# Sales Analysis
+product_sales = (
+    df.groupby("Product")["Revenue"]
+    .sum()
+    .sort_values(ascending=False)
+)
+
+category_sales = (
+    df.groupby("Category")["Revenue"]
+    .sum()
+)
+
+region_sales = (
+    df.groupby("Region")["Revenue"]
+    .sum()
+)
+
+print("\nProduct Sales")
+print(product_sales)
+
+print("\nCategory Sales")
+print(category_sales)
+
+print("\nRegion Sales")
+print(region_sales)
+
+# Visualizations
+plt.figure(figsize=(8, 5))
+sns.barplot(
+    x=product_sales.index,
+    y=product_sales.values
+)
+plt.title("Revenue by Product")
+plt.xlabel("Product")
+plt.ylabel("Revenue")
 plt.show()
 
-monthly_revenue.plot(kind='line', title='Monthly Revenue Trend', marker='o')
-plt.ylabel('Revenue')
-plt.xlabel('Month')
-plt.tight_layout()
+plt.figure(figsize=(6, 5))
+plt.pie(
+    category_sales,
+    labels=category_sales.index,
+    autopct="%1.1f%%"
+)
+plt.title("Category Revenue Share")
 plt.show()
 
-regional_sales.plot(kind='pie', autopct='%1.1f%%', title='Revenue by Region')
-plt.ylabel('')
-plt.tight_layout()
+plt.figure(figsize=(8, 5))
+sns.barplot(
+    x=region_sales.index,
+    y=region_sales.values
+)
+plt.title("Revenue by Region")
+plt.xlabel("Region")
+plt.ylabel("Revenue")
 plt.show()
 
-plt.hist(df['Units Sold'], bins=20, color='skyblue', edgecolor='black')
-plt.title('Distribution of Units Sold')
-plt.xlabel('Units Sold')
-plt.ylabel('Frequency')
-plt.tight_layout()
+plt.figure(figsize=(8, 5))
+sns.histplot(
+    df["Revenue"],
+    bins=10,
+    kde=True
+)
+plt.title("Revenue Distribution")
 plt.show()
+
+numeric_df = df.select_dtypes(include=np.number)
+
+plt.figure(figsize=(6, 4))
+sns.heatmap(
+    numeric_df.corr(),
+    annot=True,
+    cmap="coolwarm"
+)
+plt.title("Correlation Matrix")
+plt.show()
+
+# Business Insights
+best_product = product_sales.idxmax()
+
+print("\nBest Selling Product:")
+print(best_product)
+
+print("\nProject Completed Successfully")
